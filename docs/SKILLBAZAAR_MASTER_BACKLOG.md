@@ -177,7 +177,7 @@ Front-load: observability baseline; CD pipeline with one-command rollback.
 ## 12. Open questions / decisions (defaults in brackets)
 | Q | Item | Default |
 |---|---|---|
-| Q1 | Team: 3 engineers (full-stack, all cover backend/web/mobile/QA-DevOps) + client PO. Scrum Master = rotating engineer hat.
+| Q1 | Team (updated 12 Nov 2026): 1 full-stack engineer (solo, all roles and the Scrum Master hat) + client PO. Sprint dates unchanged (S0: 2026-11-16 to 2026-12-04).
 | Q2 | Pilot city and categories | TBD |
 | Q3 | Job state name | COMPLETION_VERIFYING |
 | Q4 | OD-29 rework cost bearer | TBD |
