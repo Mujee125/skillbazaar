@@ -1,12 +1,15 @@
 # Skillbazaar.pk — Master Backlog (Single Source of Truth)
-Version: 0.1 | Status: DRAFT for PO ratification | Basis: SRS v3.0 (BASELINE, 2026-10-08)
+Version: 0.5 | Updated: 2026-11-12 | Status: DRAFT for PO ratification | Basis: SRS v3.0 (BASELINE, 2026-10-08)
 SRS v3.1 (PROPOSED, 2026-11-01) has NOT been read by the assistant. Items marked [v3.1?] are provisional.
 
 ## 0. How to use this file across chat sessions
 1. Paste this file at the start of every new session.
-2. Say which section to work on (e.g. "Refine E07 into Sprint 3 stories").
-3. After each session, update Section 12 (change log) and re-commit.
+2. Say which story and task to work on (see Section 0a).
+3. After each session, update Section 16 (change log) and commit to `main` via PR.
 4. If this file and chat history disagree, this file wins.
+
+## 0a. Prompt template for new sessions
+"Please work on story `<ID>`, task `<Tn>`. Keep replies concise and step-by-step: first explain your plan, then give the code for this task only, then give the single check to run."
 
 ## 1. Product summary
 Two-sided home-services marketplace, Pakistan. Customers book Providers (electrician, plumber, AC technician, etc.).
@@ -26,9 +29,8 @@ Flow: ARRIVED → DIAGNOSING → QUOTED → IN_PROGRESS → completion.
 | D8 | Validation chain: Frontend → Service → DB trigger/constraint | Locked |
 | D9 | CLOSED is terminal; rework = new job (job_type=REWORK, parent_job_id) | Locked |
 | D10 | Commission base NOT NULL for new settlements via job_settlements table | Locked |
-| D11| Dev = local Docker Compose. Sprint 0 gate + staging = GCP free credit, EXPIRES 2026-12-31. No GCP resources before gate scripts are ready.
-|D12| Pilot host decided before 2026-12-31 using real cost numbers from the gate (GCP vs DigitalOcean). Staging after expiry = local + tunnel unless budget is approved.
-| D12 | Pilot host: decided at end of Sprint 0 by cost (GCP vs DigitalOcean) | OPEN |
+| D11 | Dev: local Docker Compose (Windows 11 + WSL2). Sprint 0 gate + staging: GCP free credit, EXPIRES 2026-12-31. No GCP resources before gate scripts are ready | Locked |
+| D12 | Pilot host: decided before 2026-12-31 using real gate cost numbers (GCP vs DigitalOcean). Staging after expiry = local + tunnel unless budget approved | OPEN |
 | D13 | Hostinger shared plan cannot run the stack; landing page/email only | Locked |
 | D14 | Job verification state name: PENDING_VERIFICATION vs COMPLETION_VERIFYING | OPEN (recommend rename; collides with Provider status in SRS §7.3) |
 
@@ -49,6 +51,7 @@ Flow: ARRIVED → DIAGNOSING → QUOTED → IN_PROGRESS → completion.
 ## 4. Architecture summary
 Django apps: identity, verification, catalog, dispatch (Ranker interface + dispatch_decisions log), location, quoting, jobs (owns state machine), ledger (append-only), payments (port + adapters), disputes, warranty, safety, reviews, notifications, communications (contact-reveal port), audit, config, reporting.
 Infra: PostgreSQL/PostGIS + PgBouncer; Redis (GPS GEOSEARCH, Celery broker, cache, rate limit); Celery queues sos-critical / notifications / money / media / reports; S3-compatible object storage behind StoragePort (KYC in separate bucket); OpenAPI via drf-spectacular → TS client via openapi-typescript.
+Local dev environment: Windows 11 + WSL2 Ubuntu + Docker Desktop (repo cloned inside WSL filesystem, Django runs in container for GDAL/GEOS/PROJ; images: `postgis/postgis` and `redis:7-alpine`; check host port clashes with other local projects).
 Observability: OpenTelemetry, Sentry, Prometheus/Grafana, structured logs. Testing: pytest+Hypothesis, Playwright, Maestro, k6, Schemathesis.
 Rejected: microservices now, SQLite on server, Rust now, NestJS in MVP, Django Channels in MVP (poll Redis 5–10 s), Material UI, offline PIN validation, django-fsm.
 
@@ -83,12 +86,21 @@ Triggers via django-pgtrigger with a trigger catalog. Zod schemas generated from
 **Payments.** PaymentPort: initiate, confirm/status, refund/reverse, payout, verify_payee_title. Webhooks: signed → raw-stored inbox → idempotent processing. Daily reconciliation. Manual top-up with four-eyes as contingency. Cash-on-service handled as a payment method (FR-PAY-05).
 **Phase 2 seams (build now).** No raw phone in API responses (use gated, audited GET /jobs/{id}/contact). Ranker interface (MVP = nearest-first behind hard filters). Log every dispatch decision from day 1.
 
-## 8. Scrum setup (assumptions — correct me)
-- 2-week sprints, ~5–6 engineers (2–3 backend, 1 web, 1–2 mobile, shared QA/DevOps), one named PO. ← UNCONFIRMED
-- Hierarchy: Theme → Epic → Story → Task. Story ID: SB-E07-012. Every story cites SRS IDs.
-- Story template: As a / I want / So that; SRS refs; Given/When/Then; validation layers; events; NFR notes; dependencies; estimate.
-**Definition of Ready:** SRS refs identified; AC testable; dependencies known; estimate agreed; UX attached; SRS text available.
-**Definition of Done:** reviewed; tests pass; import-linter passes; migration tested on PostGIS; OpenAPI updated and TS client regenerated; validation layers per matrix; audit/event emission verified; strings externalized (en/ur) and RTL checked; a11y check; metrics/logs/Sentry wired; feature-flagged if risky; deployed to staging.
+## 8. Scrum setup
+- **Team:** 1 full-stack engineer (solo; covers backend, web, mobile, QA/DevOps, and wears the Scrum Master hat) + client Product Owner (manages backlog priorities, business verifications, and scope trade-offs).
+- **Cadence:** Sprint 0 = 3 weeks (2026-11-16 to 2026-12-04). Subsequent sprints = 2 weeks.
+- **Ceremonies (solo-adapted):** Sprint Planning + Review Demo with client PO; daily 5-minute written log (Done / Next / Blocked); Sprint Retrospective note. No scope enters a running sprint without swapping out equal work.
+- **Hierarchy:** Theme → Epic → Story → Task. Story ID: `SB-E07-012`. Every story cites SRS IDs.
+- **Story template:** As a / I want / So that; SRS refs; Given/When/Then; validation layers; events; NFR notes; dependencies; estimate.
+- **Definition of Ready:** SRS refs identified; AC testable; dependencies known; estimate agreed; UX attached; SRS text available.
+- **Definition of Done:** PR self-reviewed against checklist (peer-reviewed once a second engineer joins); tests pass; import-linter passes; migration tested on PostGIS; OpenAPI updated and TS client regenerated; validation layers per matrix; audit/event emission verified; strings externalized (en/ur) and RTL checked; a11y check; metrics/logs/Sentry wired; feature-flagged if risky; deployed to staging; accepted by PO.
+
+## 8a. Working method (incremental execution)
+- Keep WIP = 1 task at a time (all tasks assigned to the solo engineer).
+- Each story is split into tasks of half a day or less just before work starts, tracked as a checklist in the story's GitHub issue.
+- Loop per task: **explain plan → write code for this task only → run verification check → open PR & Squash-and-Merge → next task**.
+- Branch naming: `SB-E00-001-t1-short-name`. PR body: `Part of #<issue>` for intermediate tasks; `Closes #<issue>` on the final task only.
+- `SB-E00-001` tasks: T1 repo skeleton | T2 Compose (PostGIS, Redis) | T3 backend container | T4 health endpoint + pytest | T5 pnpm workspace | T6 README cold-run.
 
 ## 9. Epics and releases
 | Epic | Name | Release |
@@ -114,30 +126,31 @@ Triggers via django-pgtrigger with a trigger catalog. Zod schemas generated from
 | E18 | Security / privacy / compliance | cross-cutting |
 | E19 | Tiered overdraft | R1.1 |
 | P2 | Number masking, ranked dispatch, Raast, Cards, Customer native app | Phase 2 |
-Roadmap: R0 walking skeleton (S0–S2) | R1 closed pilot (S3–S10; one city, 3–4 categories, manual KYC, one live payment adapter) | R1.1 (S11–S13) | Phase 2 (S14+).
+Roadmap: R0 walking skeleton | R1 closed pilot (one city, 3–4 categories, manual KYC, one live payment adapter) | R1.1 | Phase 2. (Sprint counts originally estimated for 5–6 engineers will be re-forecast after Sprint 0/1 solo velocity is measured.)
 
 ## 10. Sprint backlogs
-### Sprint 0 (3 weeks, 2026-11-16 to 2026-12-04, commit 30 pts. 007 split into 007a (S0, 3) and 007b (S1, 2). 005, 006, 008 moved to S1. 003 is stretch.)
-| ID | Pts | Story |
-|---|---|---|
-| SB-E00-001 | 3 | Monorepo scaffold: Django backend + pnpm workspace (apps/web, apps/provider, packages/api-client, validation, tokens) |
-| SB-E00-002 | 5 | GCP verification (trial): Cloud SQL PostgreSQL with PostGIS, PITR enabled and retention noted, region list (Mumbai/Delhi), Redis option and price, latency test from Karachi/Lahore/Islamabad, confirm free plan does not block these services |
-| SB-E00-003 | 5 | CI: lint, types, pytest on PostGIS container, import-linter, OpenAPI drift check, TS client generation |
-| SB-E00-004 | 8 | Data-tier gate: PostGIS dwithin benchmark (50k synthetic providers, 100 concurrent, p95 target 500 ms; SRS v3.0 PERF-03 is 2 s), PITR restore drill (TEST-07), Redis-loss recovery via outbox sweeper, resumable 3 MB upload at 2G speed |
-| SB-E00-005 | 5 | RN spike: mock-location, Play Integrity, background upload on low-end Android |
-| SB-E00-006 | 2 | RN UI spike (NativeWind) and shared tokens |
-| SB-E00-007 | 5 | ADR pack: modular monolith, validation layering + trigger catalog, outbox, money, state machine, job-state name, hosting/DR |
-| SB-E00-008 | 3 | Data-flow inventory (processors, data categories, PII) for OD-07 / PR-07 |
-| SB-E00-009 | 2 | PO ratifies v3.2 amendments; answers OD-29/30/31 |
-| SB-E00-010 | 3 | Start long-lead workstreams (Section 11) incl. "ask each gateway about data-location rules" |
-| SB-E00-011 | 1 | Working agreements, DoD, release-gate checklist |
-| SB-E00-012 | 2 | (updated) Budget alert, teardown script, evidence export to repo before 2026-12-31 |
-| SB-E00-013 | 3 | Gate-in-a-box: scripted GCP create/teardown (gcloud or Terraform), benchmark and restore-drill scripts that run locally first, so the cloud window is 3-5 days |
-Go/no-go: if Cloud SQL lacks PostGIS or PITR meets less than REL-04, fall back to DigitalOcean or Postgres with WAL archiving.
+### Sprint 0 (3 weeks, 2026-11-16 to 2026-12-04, target 30 pts + 003 stretch) — Goal: prove the data tier before GCP credit expiry; lock core ADRs
+| ID | Pts | Priority | Story |
+|---|---|---|---|
+| SB-E00-001 | 3 | MUST | Monorepo scaffold: containerized Django backend + pnpm workspace (apps/web, apps/provider, packages/api-client, validation, tokens) |
+| SB-E00-013 | 3 | MUST | Gate-in-a-box: scripted GCP create/teardown, benchmark and restore-drill scripts tested locally first so cloud window is 3–5 days |
+| SB-E00-002 | 5 | MUST | GCP verification: Cloud SQL PostgreSQL + PostGIS, PITR enabled/retention noted, region list (Mumbai/Delhi), Redis option/price, latency test (Karachi/Lahore/Islamabad), confirm free plan allows services |
+| SB-E00-004 | 8 | MUST | Data-tier gate: PostGIS dwithin benchmark (50k synthetic providers, 100 concurrent, p95 target 500 ms; SRS v3.0 PERF-03 is 2 s), PITR restore drill (TEST-07), Redis-loss recovery via outbox sweeper, resumable 3 MB upload at 2G speed |
+| SB-E00-012 | 2 | MUST | GCP cost guardrails: budget alert, teardown verification, gate evidence exported to repo, pilot-host cost comparison before 2026-12-31 (closes D12) |
+| SB-E00-007a | 3 | SHOULD | Core ADRs: hosting/DR, job-state name, money representation (split from 007) |
+| SB-E00-009 | 2 | SHOULD | Client PO ratifies v3.2 amendments and answers OD-29/30/31 |
+| SB-E00-011 | 1 | SHOULD | Working agreements, solo PR self-review checklist, DoD, release-gate checklist |
+| SB-E00-010 | 3 | SLIP FIRST | Start long-lead workstreams (Section 11) incl. asking gateways about data-location rules (kick-off minimum) |
+| SB-E00-003 | 5 | STRETCH | CI: lint, types, pytest on PostGIS container, import-linter, OpenAPI drift check, TS client generation |
+Calibration note: MUST = 21 pts, SHOULD = 6 pts. Velocity will be checked after `SB-E00-001` T1–T3. Go/no-go: if Cloud SQL lacks PostGIS or PITR misses REL-04, fall back to DigitalOcean or Postgres with WAL archiving.
 
-### Sprint 1 (commit 101–107, stretch 108–110)
+### Sprint 1 (2 weeks, starts 2026-12-07 — commit line to be sized at Sprint 1 Planning using measured solo velocity)
 | ID | Pts | Story |
 |---|---|---|
+| SB-E00-005 | 5 | RN spike: mock-location, Play Integrity, background upload on low-end Android (moved from S0; do not slip past S1) |
+| SB-E00-006 | 2 | RN UI spike (NativeWind) and shared tokens (moved from S0) |
+| SB-E00-007b | 2 | Remaining ADRs: modular monolith, validation layering + trigger catalog, outbox, state machine (split from 007) |
+| SB-E00-008 | 3 | Data-flow inventory (processors, data categories, PII) for OD-07 / PR-07 (moved from S0) |
 | SB-E00-101 | 5 | Module skeletons + import-linter contracts |
 | SB-E00-102 | 5 | Config service |
 | SB-E00-103 | 8 | Transactional outbox |
@@ -148,9 +161,9 @@ Go/no-go: if Cloud SQL lacks PostGIS or PITR meets less than REL-04, fall back t
 | SB-E00-108 | 2 | Feature flags + kill switches |
 | SB-E17-109 | 8 | Next.js customer shell, en/ur, RTL |
 | SB-E17-110 | 8 | RN Provider shell |
-Front-load: observability baseline; CD pipeline with one-command rollback.
+Also front-load in R0: observability baseline; CD pipeline with one-command rollback (plus `SB-E00-003` CI if not completed in Sprint 0).
 
-### Sprints 2+ (candidate stories, unestimated — refine in Increment 2; SRS refs to be attached)
+### Sprints 2+ (candidate stories, unestimated — refine incrementally; SRS refs to be attached)
 - E02: provider signup and docs upload; CNIC hash uniqueness (BR-003); admin review queue; status machine UNVERIFIED → PENDING_VERIFICATION → VERIFIED/REJECTED, DEVERIFIED.
 - E03: category/service catalog; pilot categories; provider skill mapping.
 - E04: live location ping ingest (Redis); nearest-first dispatch with hard filters; dispatch_decisions log; offer/accept/timeout.
@@ -168,28 +181,28 @@ Front-load: observability baseline; CD pipeline with one-command rollback.
 - E18: PII encryption, secrets manager, retention jobs, legal review gate before real CNIC data.
 - E19: tiered overdraft.
 
-## 11. Long-lead non-engineering workstreams (start Sprint 0)
+## 11. Long-lead non-engineering workstreams (start Sprint 0 — owned with client PO)
 1. JazzCash/Easypaisa merchant onboarding (ask about data-location rules).
 2. SMS gateway + sender-ID registration + secondary provider.
 3. Google Play, Apple, FCM accounts (Play verification requirements unverified).
 4. Legal brief: data protection (OD-07), stored-value wallet regulation, KYC handling.
 
 ## 12. Open questions / decisions (defaults in brackets)
-| Q | Item | Default |
+| Q | Item | Status / Default |
 |---|---|---|
-| Q1 | Team (updated 12 Nov 2026): 1 full-stack engineer (solo, all roles and the Scrum Master hat) + client PO. Sprint dates unchanged (S0: 2026-11-16 to 2026-12-04).
-| Q2 | Pilot city and categories | TBD |
-| Q3 | Job state name | COMPLETION_VERIFYING |
-| Q4 | OD-29 rework cost bearer | TBD |
-| Q5 | OD-30 claim effect on streak/ratings/dispatch | TBD |
-| Q6 | OD-31 | one active claim/dispute per job; max 1 rework; no window extension |
-| Q7 | Commission rounding | half-up (to confirm) |
-| Q8 | Support geofence exception counts as four-eyes? | No |
-| Q9 | Linux/Postgres ops skills on team | Unknown |
-| Q10 | Supply SRS v3.1 text | Needed to verify [v3.1?] items |
-| Q11 | Pilot host (D12) | decide at end of Sprint 0 |
+| Q1 | Team size, PO, sprint length | **RESOLVED:** 1 solo full-stack engineer + client PO; 3-week S0, 2-week S1+ |
+| Q2 | Pilot city and categories | OPEN (TBD with client PO) |
+| Q3 | Job state name | OPEN [COMPLETION_VERIFYING] |
+| Q4 | OD-29 rework cost bearer | OPEN (TBD with client PO) |
+| Q5 | OD-30 claim effect on streak/ratings/dispatch | OPEN (TBD with client PO) |
+| Q6 | OD-31 claim/dispute limits | OPEN [one active claim/dispute per job; max 1 rework; no window extension] |
+| Q7 | Commission rounding | OPEN [half-up] |
+| Q8 | Support geofence exception counts as four-eyes? | OPEN [No] |
+| Q9 | Ops approach for solo engineer | Managed DB/Redis preferred; Dockerized local + scripted cloud setups |
+| Q10 | Supply SRS v3.1 text | OPEN — needed to verify `[v3.1?]` items |
+| Q11 | Pilot host (D12) | OPEN — decide before 2026-12-31 |
 
-## 13. v3.2-draft SRS amendments (for ratification)
+## 13. v3.2-draft SRS amendments (for client PO ratification)
 1. Provider client native-capable (EIR-DEV-01/05; FR-DSP-16 integrity checks).
 2. Validation-layering requirement; replace chk_warranty_window DDL.
 3. Job verification state in Table 7.1-1; amend FR-JOB-13/14, BR-018, BR-032.
@@ -203,17 +216,20 @@ Front-load: observability baseline; CD pipeline with one-command rollback.
 ## 14. Risks (initial)
 | Risk | Mitigation |
 |---|---|
+| Solo engineer capacity / bus factor | Strict WIP=1, scripted setups, ADRs in repo, re-forecast roadmap after S0 velocity check |
 | PITR on chosen host misses REL-04 | Sprint 0 gate; fallback host |
-| GCP credit expires mid-project | Budget alert; teardown; D12 decision |
-| Gateway onboarding delays | Fake adapter first; start in Sprint 0 |
+| GCP credit expires 2026-12-31 | Budget alert; scripted 3–5 day gate window; teardown; D12 decision |
+| Gateway onboarding delays | Fake adapter first; client PO starts onboarding in Sprint 0 |
 | Gateway sets data-location rule | Docker portability; ask in Sprint 0 |
-| Play Integrity / mock-location unreliable on low-end phones | RN spike |
-| v3.1 conflicts with this file | Supply v3.1; re-verify [v3.1?] items |
+| Play Integrity / mock-location unreliable on low-end phones | RN spike in Sprint 1 |
+| v3.1 conflicts with this file | Supply v3.1; re-verify `[v3.1?]` items |
 
-## 15. Tracking tool mapping (see Appendix)
-Epic = GitHub label epic:E07 (or Jira Epic). Story = Issue titled "SB-E07-012 …". Sprint = GitHub Iteration (or Jira Sprint). Points = number field.
+## 15. Tracking tool mapping (GitHub Projects)
+Epic = GitHub label `epic:E07` + Epic field. Story = Issue titled `SB-E07-012 …`. Tasks = checklist inside Story issue. Sprint = GitHub Iteration field. Points = Number field.
 
 ## 16. Change log
 - 0.1 — Initial master backlog; hosting moved to GCP credit for gate/staging.
-- 0.2 - GCP credit expiry fixed at 2026-12-31; added SB-E00-013.
-- 0.3 - team size corrected to 3 engineers + PO; Sprint 0 recut.
+- 0.2 — GCP credit expiry fixed at 2026-12-31; added SB-E00-013.
+- 0.3 — Sprint 0 set to 3 weeks (2026-11-16 to 2026-12-04); 007 split into 007a/007b; 005/006/008 moved to Sprint 1.
+- 0.4 — Added prompt template (0a), incremental working method (8a), and SB-E00-001 tasks T1–T6.
+- 0.5 — Updated for solo full-stack engineer + client PO (Windows 11 + WSL2 + Docker); cleaned duplicate rows; added Sprint 0 MUST/SHOULD priorities.
