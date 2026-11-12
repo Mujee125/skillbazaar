@@ -1,0 +1,35 @@
+# Secrets and local config (SEC-INFRA-01)
+.env
+.env.*
+!.env.example
+secrets/
+*service-account*.json
+
+# Python / Django
+__pycache__/
+*.py[cod]
+.venv/
+.pytest_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+backend/staticfiles/
+backend/media/
+
+# Node / Next.js / React Native
+node_modules/
+.next/
+.expo/
+dist/
+build/
+*.tsbuildinfo
+
+# Infra
+.terraform/
+*.tfstate*
+
+# Editors and OS
+.idea/
+.vscode/
+.DS_Store
+Thumbs.db
