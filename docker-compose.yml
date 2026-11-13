@@ -10,7 +10,7 @@ services:
     volumes:
       - pgdata:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U sb -d skillbazaar"]
+      test: ["CMD-SHELL", "pg_isready -h 127.0.0.1 -U sb -d skillbazaar"]
       interval: 5s
       timeout: 3s
       retries: 10
@@ -24,6 +24,19 @@ services:
       interval: 5s
       timeout: 3s
       retries: 10
+
+  backend:
+    build: ./backend
+    env_file: .env
+    ports:
+      - "8001:8000"
+    volumes:
+      - ./backend:/app
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
 
 volumes:
   pgdata:
