@@ -1,0 +1,6 @@
+# Top-level dependencies only. Exact pins live in requirements.txt.
+# Regenerate requirements.txt after editing this file (see docs later in T6).
+Django>=6.1,<6.2
+djangorestframework
+psycopg[binary]
+redis

@@ -1,5 +1,5 @@
 # Skillbazaar.pk — Master Backlog (Single Source of Truth)
-Version: 0.5 | Updated: 2026-11-12 | Status: DRAFT for PO ratification | Basis: SRS v3.0 (BASELINE, 2026-10-08)
+Version: 0.6 | Updated: 2026-11-13 | Status: DRAFT for PO ratification | Basis: SRS v3.0 (BASELINE, 2026-10-08)
 SRS v3.1 (PROPOSED, 2026-11-01) has NOT been read by the assistant. Items marked [v3.1?] are provisional.
 
 ## 0. How to use this file across chat sessions
@@ -29,7 +29,7 @@ Flow: ARRIVED → DIAGNOSING → QUOTED → IN_PROGRESS → completion.
 | D8 | Validation chain: Frontend → Service → DB trigger/constraint | Locked |
 | D9 | CLOSED is terminal; rework = new job (job_type=REWORK, parent_job_id) | Locked |
 | D10 | Commission base NOT NULL for new settlements via job_settlements table | Locked |
-| D11 | Dev: local Docker Compose (Windows 11 + WSL2). Sprint 0 gate + staging: GCP free credit, EXPIRES 2026-12-31. No GCP resources before gate scripts are ready | Locked |
+| D11 | Dev: local Docker Compose (Windows 11, Docker Desktop with WSL2 backend; repo on D: drive, used from Git Bash). Sprint 0 gate + staging: GCP free credit, EXPIRES 2026-12-31. No GCP resources before gate scripts are ready | Locked |
 | D12 | Pilot host: decided before 2026-12-31 using real gate cost numbers (GCP vs DigitalOcean). Staging after expiry = local + tunnel unless budget approved | OPEN |
 | D13 | Hostinger shared plan cannot run the stack; landing page/email only | Locked |
 | D14 | Job verification state name: PENDING_VERIFICATION vs COMPLETION_VERIFYING | OPEN (recommend rename; collides with Provider status in SRS §7.3) |
@@ -51,7 +51,7 @@ Flow: ARRIVED → DIAGNOSING → QUOTED → IN_PROGRESS → completion.
 ## 4. Architecture summary
 Django apps: identity, verification, catalog, dispatch (Ranker interface + dispatch_decisions log), location, quoting, jobs (owns state machine), ledger (append-only), payments (port + adapters), disputes, warranty, safety, reviews, notifications, communications (contact-reveal port), audit, config, reporting.
 Infra: PostgreSQL/PostGIS + PgBouncer; Redis (GPS GEOSEARCH, Celery broker, cache, rate limit); Celery queues sos-critical / notifications / money / media / reports; S3-compatible object storage behind StoragePort (KYC in separate bucket); OpenAPI via drf-spectacular → TS client via openapi-typescript.
-Local dev environment: Windows 11 + WSL2 Ubuntu + Docker Desktop (repo cloned inside WSL filesystem, Django runs in container for GDAL/GEOS/PROJ; images: `postgis/postgis` and `redis:7-alpine`; check host port clashes with other local projects).
+Local dev environment: Windows 11 + Docker Desktop (WSL2 backend). Repo lives at D:\skillsbazar.pk\skillbazaar and is used from Git Bash, not from inside WSL. Django runs in a container for GDAL/GEOS/PROJ; images: postgis/postgis and redis:7-alpine. Host ports: PostGIS 5433, Redis 6380, Django 8001 (8000 is used by another local project).
 Observability: OpenTelemetry, Sentry, Prometheus/Grafana, structured logs. Testing: pytest+Hypothesis, Playwright, Maestro, k6, Schemathesis.
 Rejected: microservices now, SQLite on server, Rust now, NestJS in MVP, Django Channels in MVP (poll Redis 5–10 s), Material UI, offline PIN validation, django-fsm.
 
@@ -233,3 +233,4 @@ Epic = GitHub label `epic:E07` + Epic field. Story = Issue titled `SB-E07-012 �
 - 0.3 — Sprint 0 set to 3 weeks (2026-11-16 to 2026-12-04); 007 split into 007a/007b; 005/006/008 moved to Sprint 1.
 - 0.4 — Added prompt template (0a), incremental working method (8a), and SB-E00-001 tasks T1–T6.
 - 0.5 — Updated for solo full-stack engineer + client PO (Windows 11 + WSL2 + Docker); cleaned duplicate rows; added Sprint 0 MUST/SHOULD priorities.
+- 0.6 — T1 and T2 done. Host ports: PostGIS 5433, Redis 6380, Django 8001 (8000 is used by another local project). Repo lives at D:\skillsbazar.pk\skillbazaar, used from Git Bash, not WSL (decided; revisit only if reload or speed problems appear).
