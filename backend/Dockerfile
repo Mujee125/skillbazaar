@@ -1,4 +1,4 @@
-FROM python:3.12-slim-bookworm
+FROM python:3.12-slim-trixie
 
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
@@ -6,7 +6,7 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
 
 # GeoDjango runtime libraries (GDAL, GEOS, PROJ)
 RUN apt-get update \
-    && apt-get install -y --no-install-recommends gdal-bin libgeos-c1v5 libproj25 \
+    && apt-get install -y --no-install-recommends gdal-bin libgeos-c1t64 libproj25 \
     && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
