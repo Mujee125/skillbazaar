@@ -1,5 +1,5 @@
 # Skillbazaar.pk — Master Backlog (Single Source of Truth)
-Version: 0.6 | Updated: 2026-11-13 | Status: DRAFT for PO ratification | Basis: SRS v3.0 (BASELINE, 2026-10-08)
+Version: 0.7 | Updated: 2026-11-14 | Status: DRAFT for PO ratification | Basis: SRS v3.0 (BASELINE, 2026-10-08)
 SRS v3.1 (PROPOSED, 2026-11-01) has NOT been read by the assistant. Items marked [v3.1?] are provisional.
 
 ## 0. How to use this file across chat sessions
@@ -129,20 +129,20 @@ Triggers via django-pgtrigger with a trigger catalog. Zod schemas generated from
 Roadmap: R0 walking skeleton | R1 closed pilot (one city, 3–4 categories, manual KYC, one live payment adapter) | R1.1 | Phase 2. (Sprint counts originally estimated for 5–6 engineers will be re-forecast after Sprint 0/1 solo velocity is measured.)
 
 ## 10. Sprint backlogs
-### Sprint 0 (3 weeks, 2026-11-16 to 2026-12-04, target 30 pts + 003 stretch) — Goal: prove the data tier before GCP credit expiry; lock core ADRs
+### Sprint 0 (3 weeks, 2026-11-16 to 2026-12-04, commit 18 pts (4 MUST stories), stretch 011, 009, 007a) — Goal: prove the data tier before GCP credit expiry; lock core ADRs
 | ID | Pts | Priority | Story |
 |---|---|---|---|
-| SB-E00-001 | 3 | MUST | Monorepo scaffold: containerized Django backend + pnpm workspace (apps/web, apps/provider, packages/api-client, validation, tokens) |
+| SB-E00-001 | 3 | DONE | Monorepo scaffold: containerized Django backend + pnpm workspace (apps/web, apps/provider, packages/api-client, validation, tokens) |
 | SB-E00-013 | 3 | MUST | Gate-in-a-box: scripted GCP create/teardown, benchmark and restore-drill scripts tested locally first so cloud window is 3–5 days |
 | SB-E00-002 | 5 | MUST | GCP verification: Cloud SQL PostgreSQL + PostGIS, PITR enabled/retention noted, region list (Mumbai/Delhi), Redis option/price, latency test (Karachi/Lahore/Islamabad), confirm free plan allows services |
 | SB-E00-004 | 8 | MUST | Data-tier gate: PostGIS dwithin benchmark (50k synthetic providers, 100 concurrent, p95 target 500 ms; SRS v3.0 PERF-03 is 2 s), PITR restore drill (TEST-07), Redis-loss recovery via outbox sweeper, resumable 3 MB upload at 2G speed |
 | SB-E00-012 | 2 | MUST | GCP cost guardrails: budget alert, teardown verification, gate evidence exported to repo, pilot-host cost comparison before 2026-12-31 (closes D12) |
-| SB-E00-007a | 3 | SHOULD | Core ADRs: hosting/DR, job-state name, money representation (split from 007) |
-| SB-E00-009 | 2 | SHOULD | Client PO ratifies v3.2 amendments and answers OD-29/30/31 |
-| SB-E00-011 | 1 | SHOULD | Working agreements, solo PR self-review checklist, DoD, release-gate checklist |
+| SB-E00-007a | 3 | STRETCH 3 | Core ADRs: hosting/DR, job-state name, money representation (split from 007) |
+| SB-E00-009 | 2 | STRETCH 2 | Client PO ratifies v3.2 amendments and answers OD-29/30/31 |
+| SB-E00-011 | 1 | STRETCH 1 | Working agreements, solo PR self-review checklist, DoD, release-gate checklist |
 | SB-E00-010 | 3 | SLIP FIRST | Start long-lead workstreams (Section 11) incl. asking gateways about data-location rules (kick-off minimum) |
-| SB-E00-003 | 5 | STRETCH | CI: lint, types, pytest on PostGIS container, import-linter, OpenAPI drift check, TS client generation |
-Calibration note: MUST = 21 pts, SHOULD = 6 pts. Velocity will be checked after `SB-E00-001` T1–T3. Go/no-go: if Cloud SQL lacks PostGIS or PITR misses REL-04, fall back to DigitalOcean or Postgres with WAL archiving.
+| SB-E00-003 | 5 | SLIP FIRST | CI: lint, types, pytest on PostGIS container, import-linter, OpenAPI drift check, TS client generation |
+Calibration note: Commit line = the four MUST stories above (18 pts; SB-E00-001 is done). STRETCH numbers give the order to pull them in. Measured pace after SB-E00-001: about 21 h for 3 pts, about 7 h per point, capacity 14 to 17 pts (verify). Checkpoint 2026-11-20: if SB-E00-013 takes more than about 21 h, cut scope from SB-E00-004. Go/no-go: if Cloud SQL lacks PostGIS or PITR misses REL-04, fall back to DigitalOcean or Postgres with WAL archiving.
 
 ### Sprint 1 (2 weeks, starts 2026-12-07 — commit line to be sized at Sprint 1 Planning using measured solo velocity)
 | ID | Pts | Story |
@@ -234,3 +234,4 @@ Epic = GitHub label `epic:E07` + Epic field. Story = Issue titled `SB-E07-012 �
 - 0.4 — Added prompt template (0a), incremental working method (8a), and SB-E00-001 tasks T1–T6.
 - 0.5 — Updated for solo full-stack engineer + client PO (Windows 11 + WSL2 + Docker); cleaned duplicate rows; added Sprint 0 MUST/SHOULD priorities.
 - 0.6 — T1 and T2 done. Host ports: PostGIS 5433, Redis 6380, Django 8001 (8000 is used by another local project). Repo lives at D:\skillsbazar.pk\skillbazaar, used from Git Bash, not WSL (decided; revisit only if reload or speed problems appear).
+- 0.7 — SB-E00-001 done (PRs #2 to #7). Cold run from a fresh clone passed: first run about 20 minutes (backend build about 6 min, stack start about 20 s, plus image downloads). Measured pace about 21 h for 3 pts. Sprint 0 recut: commit line = the four MUST stories (18 pts); SB-E00-011, 009, 007a are stretch in that order; SB-E00-010 and 003 slip first. Backend has no healthcheck, so Django needs about 6 to 10 s after up (follow-up task).
