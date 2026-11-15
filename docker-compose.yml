@@ -1,6 +1,7 @@
 services:
   db:
     image: postgis/postgis:16-3.4
+    command: ["postgres", "-c", "max_connections=200"]
     environment:
       POSTGRES_DB: skillbazaar
       POSTGRES_USER: sb
