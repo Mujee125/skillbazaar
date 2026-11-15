@@ -1,6 +1,6 @@
 services:
   db:
-    image: postgis/postgis:16-3.4
+    image: postgis/postgis:18-3.7
     command: ["postgres", "-c", "max_connections=200"]
     environment:
       POSTGRES_DB: skillbazaar
@@ -9,7 +9,7 @@ services:
     ports:
       - "5433:5432"
     volumes:
-      - pgdata:/var/lib/postgresql/data
+      - pgdata18:/var/lib/postgresql
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -h 127.0.0.1 -U sb -d skillbazaar"]
       interval: 5s
@@ -40,4 +40,4 @@ services:
         condition: service_healthy
 
 volumes:
-  pgdata:
+  pgdata18:

@@ -7,7 +7,7 @@
 set -euo pipefail
 export MSYS_NO_PATHCONV=1   # Git Bash: stop /archive being rewritten to a Windows path
 
-IMAGE="${PITR_IMAGE:-postgis/postgis:16-3.4}"
+IMAGE="${PITR_IMAGE:-postgis/postgis:18-3.7}"
 LABEL="com.skillbazaar.drill=pitr"
 SRV=sb-pitr-drill
 RST=sb-pitr-restore
@@ -52,7 +52,7 @@ docker run --rm --user root -v sb_pitr_archive:/archive -v sb_pitr_backup:/backu
 
 echo "== 2. server with WAL archiving"
 docker run -d --name "$SRV" --label "$LABEL" -e POSTGRES_PASSWORD=drill_only \
-  -v sb_pitr_data:/var/lib/postgresql/data -v sb_pitr_archive:/archive -v sb_pitr_backup:/backup \
+  -v sb_pitr_data:/var/lib/postgresql -v sb_pitr_archive:/archive -v sb_pitr_backup:/backup \
   "$IMAGE" postgres -c archive_mode=on \
   -c "archive_command=test ! -f /archive/%f && cp %p /archive/%f" >/dev/null
 for i in $(seq 1 90); do
@@ -116,9 +116,9 @@ echo "== 6. restore to T (timed)"
 guard_volume sb_pitr_data
 START=$(date +%s%3N)
 docker run --rm --user root -v sb_pitr_data:/data -v sb_pitr_backup:/backup:ro "$IMAGE" \
-  sh -c 'cp -a /backup/base/. /data/ && touch /data/recovery.signal && chown -R postgres:postgres /data && chmod 700 /data'
+  sh -c 'mkdir -p /data/18/docker && cp -a /backup/base/. /data/18/docker/ && touch /data/18/docker/recovery.signal && chown -R postgres:postgres /data && chmod 700 /data/18/docker'
 docker run -d --name "$RST" --label "$LABEL" \
-  -v sb_pitr_data:/var/lib/postgresql/data -v sb_pitr_archive:/archive:ro "$IMAGE" \
+  -v sb_pitr_data:/var/lib/postgresql -v sb_pitr_archive:/archive:ro "$IMAGE" \
   postgres -c "restore_command=cp /archive/%f %p" -c "recovery_target_time=$T" \
   -c recovery_target_action=promote >/dev/null
 R=""
