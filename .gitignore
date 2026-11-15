@@ -33,3 +33,5 @@ build/
 .vscode/
 .DS_Store
 Thumbs.db
+# Local benchmark runs are not gate evidence
+docs/gate-evidence/*-local-*.json
