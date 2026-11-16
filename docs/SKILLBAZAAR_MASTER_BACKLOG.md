@@ -1,5 +1,5 @@
 # Skillbazaar.pk — Master Backlog (Single Source of Truth)
-Version: 0.7 | Updated: 2026-11-14 | Status: DRAFT for PO ratification | Basis: SRS v3.0 (BASELINE, 2026-10-08)
+Version: 0.8 | Updated: 2026-11-16 | Status: DRAFT for PO ratification | Basis: SRS v3.0 (BASELINE, 2026-10-08)
 SRS v3.1 (PROPOSED, 2026-11-01) has NOT been read by the assistant. Items marked [v3.1?] are provisional.
 
 ## 0. How to use this file across chat sessions
@@ -20,7 +20,7 @@ Flow: ARRIVED → DIAGNOSING → QUOTED → IN_PROGRESS → completion.
 | # | Decision | Status |
 |---|---|---|
 | D1 | Backend: Python, Django, DRF, GeoDjango; modular monolith | Locked |
-| D2 | DB: PostgreSQL + PostGIS (SRID 4326, GiST) | Locked (SRS §1.7) |
+| D2 | DB: PostgreSQL 18 + PostGIS 3.7 locally (image `postgis/postgis:18-3.7`), Cloud SQL `POSTGRES_18`; SRID 4326, GiST | Locked (SRS §1.7); versions decided after SB-E00-013 T3 |
 | D3 | Redis-class store for live GPS (Tier 1), PostGIS for Tier 2 | Locked (SRS §1.7) |
 | D4 | Customer: Next.js PWA/Web. Provider: React Native (Expo dev builds), Android-first | Locked |
 | D5 | Admin: Django Admin, guard-railed | Locked |
@@ -235,3 +235,4 @@ Epic = GitHub label `epic:E07` + Epic field. Story = Issue titled `SB-E07-012 �
 - 0.5 — Updated for solo full-stack engineer + client PO (Windows 11 + WSL2 + Docker); cleaned duplicate rows; added Sprint 0 MUST/SHOULD priorities.
 - 0.6 — T1 and T2 done. Host ports: PostGIS 5433, Redis 6380, Django 8001 (8000 is used by another local project). Repo lives at D:\skillsbazar.pk\skillbazaar, used from Git Bash, not WSL (decided; revisit only if reload or speed problems appear).
 - 0.7 — SB-E00-001 done (PRs #2 to #7). Cold run from a fresh clone passed: first run about 20 minutes (backend build about 6 min, stack start about 20 s, plus image downloads). Measured pace about 21 h for 3 pts. Sprint 0 recut: commit line = the four MUST stories (18 pts); SB-E00-011, 009, 007a are stretch in that order; SB-E00-010 and 003 slip first. Backend has no healthcheck, so Django needs about 6 to 10 s after up (follow-up task).
+- 0.8 — Database versions decided: local PostgreSQL 18.7 / PostGIS 3.7.0 and Cloud SQL POSTGRES_18 (PR #13). Cloud SQL sets its own PostGIS version, so record `postgis_full_version()` in the gate evidence (verify). Local data volume is now `pgdata18`, mounted at `/var/lib/postgresql`. The old PG16 volume `skillbazaar_pgdata` is kept unused until a removal decision. SB-E00-013 T1 to T3 are done (PRs #10 to #12) and were re-tested on PG18. T4 to T6 remain.
