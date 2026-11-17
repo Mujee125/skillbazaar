@@ -54,7 +54,7 @@ runs the same way locally, on Cloud SQL and on DigitalOcean. Local example
     MSYS_NO_PATHCONV=1 docker compose run --rm -T -v "$(pwd -W)/infra/gate:/gate:ro" -v "$(pwd -W)/docs/gate-evidence:/out" backend python /gate/benchmark.py --dsn "postgresql://sb:sb_dev_only@db:5432/skillbazaar" --label pg18-local --out-dir /out
 
 Never commit a real password. The JSON output does not contain it.
-Options: `--clients`, `--queries-per-client`, `--radii-km`, `--limit`, `--seed`.
+Options: `--clients`, `--queries-per-client`, `--radii-km`, `--limit`, `--seed`, `--no-warmup`.
 Small runs are noisy. Do not read a verdict from them.
 
 ## 3. Local recovery drill
@@ -86,12 +86,28 @@ Teardown (dry run first):
 
 Check the console afterwards for backups and billing. The script does not.
 
-## Notes
+## Notes: warm-up and ramp-up (measured locally on PG18, cause not established)
 
-The first measured radius is often slower than the others (high p99, slower
-unloaded EXPLAIN). A reverse-order run (10, 5, 2 km) moved the slow phase to
-10 km, so it follows position, not radius. Suspected cause: the first query
-on each new connection. Not proven. A warm-up query is the next change.
+`benchmark.py` runs one untimed real query per connection before the timed
+phases (at the largest radius). The warm-up times are written to the JSON under
+`warmup`. `--no-warmup` restores the old behaviour.
+
+What was measured (local, single machine, several runs each):
+- Without warm-up, the first radius had a high p99 (2 km: 1190 to 1361 ms in
+  3 of 3 runs). With warm-up, 2 km p99 was 174 to 234 ms in 4 of 4 runs in the
+  normal order (2, 5, 10).
+- In the reverse order (10, 5, 2), the first radius (10 km) still had p95
+  502 to 752 ms in 5 of 5 runs with warm-up, at either 2 km or 10 km.
+- With `10,10,10` the same radius got faster in each phase (p95 497, 426, 250 ms
+  and 384, 323, 269 ms). The settled 10 km level is about 250 to 270 ms p95.
+
+Not known: the cause (data pages, Docker VM, host CPU load and the 100 client
+threads were not separated). The warm-up time includes contention between the
+100 parallel queries, so it is not the cost of one query.
+
+Rule for the week-2 cloud run: run the benchmark twice in a row and report both
+runs. The verdict still uses every phase, including the first. If a first radius
+is close to 500 ms, repeat before drawing a conclusion.
 
 ## Verify in week 2
 

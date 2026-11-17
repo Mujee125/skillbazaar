@@ -3,6 +3,7 @@
 
 Runs a nearest-first ST_DWithin query from many concurrent clients against
 gate_provider_locations, and reports latency, error rate and throughput.
+It measures speed, errors, and database performance.
 Takes a DSN, so it runs against local Postgres, Cloud SQL or DigitalOcean.
 
 Exit code: 0 = PASS, 1 = FAIL, 2 = could not start.
@@ -141,6 +142,31 @@ def run_phase(conns, radius_km, args, seed_base):
     }
 
 
+def warmup(conns, radius_km, args):
+    """One untimed real query per connection, all connections in parallel.
+    Not part of any timed phase. Returns (sorted times in ms, error type names)."""
+    times = [None] * len(conns)
+    errors = [None] * len(conns)
+
+    def one(i, conn):
+        params = make_params(random.Random(args.seed * 7919 + i), radius_km * 1000, args.limit)
+        t0 = time.perf_counter()
+        try:
+            with conn.cursor() as cur:
+                cur.execute(QUERY, params)
+                cur.fetchall()
+            times[i] = (time.perf_counter() - t0) * 1000
+        except Exception as exc:
+            errors[i] = type(exc).__name__
+
+    threads = [threading.Thread(target=one, args=(i, c)) for i, c in enumerate(conns)]
+    for t in threads:
+        t.start()
+    for t in threads:
+        t.join()
+    return sorted(t for t in times if t is not None), [e for e in errors if e]
+
+
 def fmt(v, spec=".1f"):
     return "n/a" if v is None else format(v, spec)
 
@@ -158,6 +184,8 @@ def main():
     ap.add_argument("--label", default="local",
                     help="used in the output file name, e.g. local or gcp-mumbai")
     ap.add_argument("--out-dir", default="docs/gate-evidence")
+    ap.add_argument("--no-warmup", action="store_true",
+                    help="skip the untimed warm-up query per connection (old behaviour)")
     args = ap.parse_args()
 
     if not args.dsn:
@@ -192,6 +220,14 @@ def main():
     print(f"rows={row_count} clients_connected={len(conns)}/{args.clients} "
           f"connect_failures={len(connect_failures)}")
 
+    warm_ms, warm_errs = [], []
+    if conns and not args.no_warmup:
+        warm_ms, warm_errs = warmup(conns, max(radii), args)
+        print(f"warm-up (untimed, {max(radii)} km): {len(warm_ms)}/{len(conns)} ok, "
+              f"errors={len(warm_errs)}, p50={fmt(percentile(warm_ms, 50))} "
+              f"p95={fmt(percentile(warm_ms, 95))} p99={fmt(percentile(warm_ms, 99))} ms")
+    elif args.no_warmup:
+        print("warm-up: skipped (--no-warmup)")
     phases = []
     for i, km in enumerate(radii):
         if conns:
@@ -200,7 +236,7 @@ def main():
         c.close()
     main_conn.close()
 
-    passed = (not connect_failures and len(phases) == len(radii) and all(
+    passed = (not connect_failures and not warm_errs and len(phases) == len(radii) and all(
         ph["query_errors"] == 0 and ph["p95_ms"] is not None
         and ph["p95_ms"] <= P95_TARGET_MS for ph in phases))
     ref_passed = bool(phases) and all(
@@ -233,6 +269,12 @@ def main():
             "query": " ".join(QUERY.split()),
         },
         "connect_failures": connect_failures,
+        "warmup": {
+            "enabled": not args.no_warmup, "radius_km": max(radii),
+            "ok": len(warm_ms), "errors": warm_errs,
+            "p50_ms": percentile(warm_ms, 50), "p95_ms": percentile(warm_ms, 95),
+            "p99_ms": percentile(warm_ms, 99), "max_ms": warm_ms[-1] if warm_ms else None,
+        },
         "explain_unloaded": {str(k): v for k, v in explains.items()},
         "results": phases,
         "verdict": {
