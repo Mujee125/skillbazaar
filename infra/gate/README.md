@@ -54,7 +54,7 @@ runs the same way locally, on Cloud SQL and on DigitalOcean. Local example
     MSYS_NO_PATHCONV=1 docker compose run --rm -T -v "$(pwd -W)/infra/gate:/gate:ro" -v "$(pwd -W)/docs/gate-evidence:/out" backend python /gate/benchmark.py --dsn "postgresql://sb:sb_dev_only@db:5432/skillbazaar" --label pg18-local --out-dir /out
 
 Never commit a real password. The JSON output does not contain it.
-Options: `--clients`, `--queries-per-client`, `--radii-km`, `--limit`, `--seed`, `--no-warmup`.
+Options: `--provider`, `--region`, `--endpoint-type`, `--clients`, `--queries-per-client`, `--radii-km`, `--limit`, `--seed`, `--no-warmup`.
 Small runs are noisy. Do not read a verdict from them.
 
 ## 3. Local recovery drill
