@@ -184,6 +184,12 @@ def main():
     ap.add_argument("--label", default="local",
                     help="used in the output file name, e.g. local or gcp-mumbai")
     ap.add_argument("--out-dir", default="docs/gate-evidence")
+    ap.add_argument("--provider", default="local-docker",
+                    help="Evidence label: where the database runs, e.g. aws-ec2")
+    ap.add_argument("--region", default="local",
+                    help="Evidence label: cloud region, e.g. ap-south-1")
+    ap.add_argument("--endpoint-type", default="direct", choices=["direct", "pooled"],
+                    help="Evidence label: direct or pooled connection")
     ap.add_argument("--no-warmup", action="store_true",
                     help="skip the untimed warm-up query per connection (old behaviour)")
     args = ap.parse_args()
@@ -260,7 +266,11 @@ def main():
     doc = {
         "timestamp_utc": now.isoformat(timespec="seconds"),
         "label": args.label,
-        "target": {k: info.get(k) for k in ("host", "port", "dbname")},
+        "target": {
+            "provider": args.provider, "region": args.region,
+            "endpoint_type": args.endpoint_type,
+            "port": info.get("port"), "dbname": info.get("dbname"),
+        },
         "psycopg_version": psycopg.__version__,
         "row_count": row_count,
         "parameters": {
