@@ -266,7 +266,7 @@ def main():
     doc = {
         "timestamp_utc": now.isoformat(timespec="seconds"),
         "label": args.label,
-                "target": {
+        "target": {
             "provider": args.provider, "region": args.region,
             "endpoint_type": args.endpoint_type,
             "port": info.get("port"), "dbname": info.get("dbname"),
