@@ -1,5 +1,5 @@
 # Skillbazaar.pk — Master Backlog (Single Source of Truth)
-Version: 0.9 | Updated: 2026-11-17 | Status: DRAFT for PO ratification | Basis: SRS v3.0 (BASELINE, 2026-10-08)
+Version: 1.0 | Updated: 2026-11-21 | Status: DRAFT for PO ratification (platform change GCP to AWS pending) | Basis: SRS v3.0 (BASELINE, 2026-10-08)
 SRS v3.1 (PROPOSED, 2026-11-01) has NOT been read by the assistant. Items marked [v3.1?] are provisional.
 
 ## 0. How to use this file across chat sessions
@@ -20,7 +20,7 @@ Flow: ARRIVED → DIAGNOSING → QUOTED → IN_PROGRESS → completion.
 | # | Decision | Status |
 |---|---|---|
 | D1 | Backend: Python, Django, DRF, GeoDjango; modular monolith | Locked |
-| D2 | DB: PostgreSQL 18 + PostGIS 3.7 locally (image `postgis/postgis:18-3.7`), Cloud SQL `POSTGRES_18`; SRID 4326, GiST | Locked (SRS §1.7); versions decided after SB-E00-013 T3 |
+| D2 | DB: PostgreSQL 18 + PostGIS 3.7 locally (image `postgis/postgis:18-3.7`), gate host PostgreSQL 18 self-managed on AWS EC2 (PostGIS package version: verify); SRID 4326, GiST | Locked (SRS §1.7); versions decided after SB-E00-013 T3 |
 | D3 | Redis-class store for live GPS (Tier 1), PostGIS for Tier 2 | Locked (SRS §1.7) |
 | D4 | Customer: Next.js PWA/Web. Provider: React Native (Expo dev builds), Android-first | Locked |
 | D5 | Admin: Django Admin, guard-railed | Locked |
@@ -29,8 +29,8 @@ Flow: ARRIVED → DIAGNOSING → QUOTED → IN_PROGRESS → completion.
 | D8 | Validation chain: Frontend → Service → DB trigger/constraint | Locked |
 | D9 | CLOSED is terminal; rework = new job (job_type=REWORK, parent_job_id) | Locked |
 | D10 | Commission base NOT NULL for new settlements via job_settlements table | Locked |
-| D11 | Dev: local Docker Compose (Windows 11, Docker Desktop with WSL2 backend; repo on D: drive, used from Git Bash). Sprint 0 gate + staging: GCP free credit, EXPIRES 2026-12-31. No GCP resources before gate scripts are ready | Locked |
-| D12 | Pilot host: decided before 2026-12-31 using real gate cost numbers (GCP vs DigitalOcean). Staging after expiry = local + tunnel unless budget approved | OPEN |
+| D11 | Dev: local Docker Compose (Windows 11, Docker Desktop with WSL2 backend; repo on D: drive, used from Git Bash). Sprint 0 gate + staging: AWS free plan, $100 credit, ends 21 May 2027 (console, checked 2026-11-21). Gate runs are same-day: create, measure, delete. No AWS resources before gate scripts are ready. What happens to servers and data at plan end is not stated (PO question). GCP dropped: billing failed. | PROPOSED by PO 2026-11-21, ratification pending (was Locked) |
+| D12 | Pilot host: decide using real gate cost numbers and the PO's answer on plan-end behaviour (AWS vs alternatives such as a VPS; all prices verify). The 2026-12-31 deadline no longer applies; the PO sets the new one. Staging after the free plan = local + tunnel unless budget approved. Guardrail: Upstash Free is gate-only, never the pilot Redis answer. A pilot needs a backup copy outside the AWS account. | OPEN |
 | D13 | Hostinger shared plan cannot run the stack; landing page/email only | Locked |
 | D14 | Job verification state name: PENDING_VERIFICATION vs COMPLETION_VERIFYING | OPEN (recommend rename; collides with Provider status in SRS §7.3) |
 
@@ -129,20 +129,20 @@ Triggers via django-pgtrigger with a trigger catalog. Zod schemas generated from
 Roadmap: R0 walking skeleton | R1 closed pilot (one city, 3–4 categories, manual KYC, one live payment adapter) | R1.1 | Phase 2. (Sprint counts originally estimated for 5–6 engineers will be re-forecast after Sprint 0/1 solo velocity is measured.)
 
 ## 10. Sprint backlogs
-### Sprint 0 (3 weeks, 2026-11-16 to 2026-12-04, commit 18 pts (4 MUST stories), stretch 011, 009, 007a) — Goal: prove the data tier before GCP credit expiry; lock core ADRs
+### Sprint 0 (3 weeks, 2026-11-16 to 2026-12-04, commit 18 pts (4 MUST stories), stretch 011, 009, 007a) — Goal: prove the data tier on a verified platform (AWS gate); lock core ADRs
 | ID | Pts | Priority | Story |
 |---|---|---|---|
 | SB-E00-001 | 3 | DONE | Monorepo scaffold: containerized Django backend + pnpm workspace (apps/web, apps/provider, packages/api-client, validation, tokens) |
 | SB-E00-013 | 3 | MUST | Gate-in-a-box: scripted GCP create/teardown, benchmark and restore-drill scripts tested locally first so cloud window is 3–5 days |
-| SB-E00-002 | 5 | MUST | GCP verification: Cloud SQL PostgreSQL + PostGIS, PITR enabled/retention noted, region list (Mumbai/Delhi), Redis option/price, latency test (Karachi/Lahore/Islamabad), confirm free plan allows services |
+| SB-E00-002 | 5 | MUST | AWS verification: PostgreSQL 18 + PostGIS on one EC2 instance, WAL archiving with archive_timeout (PITR is built by us), region situation (Sydney working region, Mumbai unverified), Redis option/price, latency from own connection, confirm free plan allows services |
 | SB-E00-004 | 8 | MUST | Data-tier gate: PostGIS dwithin benchmark (50k synthetic providers, 100 concurrent, p95 target 500 ms; SRS v3.0 PERF-03 is 2 s), PITR restore drill (TEST-07), Redis-loss recovery via outbox sweeper, resumable 3 MB upload at 2G speed |
-| SB-E00-012 | 2 | MUST | GCP cost guardrails: budget alert, teardown verification, gate evidence exported to repo, pilot-host cost comparison before 2026-12-31 (closes D12) |
+| SB-E00-012 | 2 | MUST | AWS cost guardrails: budget alert (created 2026-11-21), teardown verification (0 instances, 0 volumes, no leftover public address), gate evidence exported to repo, pilot-host cost comparison as input to D12 |
 | SB-E00-007a | 3 | STRETCH 3 | Core ADRs: hosting/DR, job-state name, money representation (split from 007) |
 | SB-E00-009 | 2 | STRETCH 2 | Client PO ratifies v3.2 amendments and answers OD-29/30/31 |
 | SB-E00-011 | 1 | STRETCH 1 | Working agreements, solo PR self-review checklist, DoD, release-gate checklist |
 | SB-E00-010 | 3 | SLIP FIRST | Start long-lead workstreams (Section 11) incl. asking gateways about data-location rules (kick-off minimum) |
 | SB-E00-003 | 5 | SLIP FIRST | CI: lint, types, pytest on PostGIS container, import-linter, OpenAPI drift check, TS client generation |
-Calibration note: Commit line = the four MUST stories above (18 pts; SB-E00-001 is done). STRETCH numbers give the order to pull them in. Measured pace after SB-E00-001: about 21 h for 3 pts, about 7 h per point, capacity 14 to 17 pts (verify). Checkpoint 2026-11-20: if SB-E00-013 takes more than about 21 h, cut scope from SB-E00-004. Go/no-go: if Cloud SQL lacks PostGIS or PITR misses REL-04, fall back to DigitalOcean or Postgres with WAL archiving.
+Calibration note: Commit line = the four MUST stories above (18 pts; SB-E00-001 is done). STRETCH numbers give the order to pull them in. Measured pace after SB-E00-001: about 21 h for 3 pts, about 7 h per point, capacity 14 to 17 pts (verify). Checkpoint 2026-11-20: if SB-E00-013 takes more than about 21 h, cut scope from SB-E00-004.Go/no-go: if PostgreSQL 18 or PostGIS packages are unavailable on EC2, or WAL archiving misses REL-04, fall back to another host or a managed AWS database (verify); the PO decides.
 
 ### Sprint 1 (2 weeks, starts 2026-12-07 — commit line to be sized at Sprint 1 Planning using measured solo velocity)
 | ID | Pts | Story |
@@ -200,7 +200,7 @@ Also front-load in R0: observability baseline; CD pipeline with one-command roll
 | Q8 | Support geofence exception counts as four-eyes? | OPEN [No] |
 | Q9 | Ops approach for solo engineer | Managed DB/Redis preferred; Dockerized local + scripted cloud setups |
 | Q10 | Supply SRS v3.1 text | OPEN — needed to verify `[v3.1?]` items |
-| Q11 | Pilot host (D12) | OPEN — decide before 2026-12-31 |
+| Q11 | Pilot host (D12) | OPEN — PO sets the new deadline |
 
 ## 13. v3.2-draft SRS amendments (for client PO ratification)
 1. Provider client native-capable (EIR-DEV-01/05; FR-DSP-16 integrity checks).
@@ -218,7 +218,9 @@ Also front-load in R0: observability baseline; CD pipeline with one-command roll
 |---|---|
 | Solo engineer capacity / bus factor | Strict WIP=1, scripted setups, ADRs in repo, re-forecast roadmap after S0 velocity check |
 | PITR on chosen host misses REL-04 | Sprint 0 gate; fallback host |
-| GCP credit expires 2026-12-31 | Budget alert; scripted 3–5 day gate window; teardown; D12 decision |
+| AWS free plan ends 21 May 2027 or when $100 is used; plan-end behaviour for servers and data not stated | Budget alert (a notification, not a cap); same-day create/delete; ask the PO; D12 decision |
+| Backups in the same AWS account do not survive account loss | Second backup location for the pilot (SB-E00-007a) |
+| Self-managed WAL archiving can miss REL-04 on a quiet database | archive_timeout set; restore drill (TEST-07) |
 | Gateway onboarding delays | Fake adapter first; client PO starts onboarding in Sprint 0 |
 | Gateway sets data-location rule | Docker portability; ask in Sprint 0 |
 | Play Integrity / mock-location unreliable on low-end phones | RN spike in Sprint 1 |
@@ -237,3 +239,4 @@ Epic = GitHub label `epic:E07` + Epic field. Story = Issue titled `SB-E07-012 �
 - 0.7 — SB-E00-001 done (PRs #2 to #7). Cold run from a fresh clone passed: first run about 20 minutes (backend build about 6 min, stack start about 20 s, plus image downloads). Measured pace about 21 h for 3 pts. Sprint 0 recut: commit line = the four MUST stories (18 pts); SB-E00-011, 009, 007a are stretch in that order; SB-E00-010 and 003 slip first. Backend has no healthcheck, so Django needs about 6 to 10 s after up (follow-up task).
 - 0.8 — Database versions decided: local PostgreSQL 18.7 / PostGIS 3.7.0 and Cloud SQL POSTGRES_18 (PR #13). Cloud SQL sets its own PostGIS version, so record `postgis_full_version()` in the gate evidence (verify). Local data volume is now `pgdata18`, mounted at `/var/lib/postgresql`. The old PG16 volume `skillbazaar_pgdata` is kept unused until a removal decision. SB-E00-013 T1 to T3 are done (PRs #10 to #12) and were re-tested on PG18. T4 to T6 remain.
 - 0.9 — Process change: the daily 5-minute written log is replaced by a weekly written Done / Next / Blocked summary to the PO; hours are logged as a comment on each story issue. SB-E00-013 done and closed (T1 to T7, PRs #10 to #18; T7 = benchmark warm-up, added after T6). Hours about 10.5 h of the ~21 h estimate (author's estimate).
+- 1.0 — Platform change GCP to AWS (PO decision, ratification pending). GCP billing failed (card rejected). AWS free plan checked in the console 2026-11-21: $100 credit, ends 21 May 2027; behaviour of servers and data at plan end not stated (PO question). Working region Sydney (ap-southeast-2) for the gate only; no region selector seen after 2 attempts, Mumbai unverified. t3.small marked Free tier eligible; larger sizes and public IPv4 cost unverified. Budget sb-gate-monthly-gross created ($5/month, Excludes Credit, alerts at 40% and 100% actual; a notification, not a cap). D11 changed from Locked to PROPOSED; D12 re-scoped (2026-12-31 deadline removed; Upstash Free gate-only). SB-E00-002 and SB-E00-012 re-scoped to AWS within the same points; issue #21 renamed. SB-E00-013 row left as delivered: its GCP scripts are superseded and AWS scripts are still to be written (owner to be agreed). Neon and Upstash were evaluated and not adopted; the Upstash test was never run. Open: Q9 (managed DB preferred) conflicts with the EC2 layout; PO to decide.
