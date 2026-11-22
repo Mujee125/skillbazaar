@@ -142,7 +142,7 @@ Roadmap: R0 walking skeleton | R1 closed pilot (one city, 3–4 categories, manu
 | SB-E00-011 | 1 | STRETCH 1 | Working agreements, solo PR self-review checklist, DoD, release-gate checklist |
 | SB-E00-010 | 3 | SLIP FIRST | Start long-lead workstreams (Section 11) incl. asking gateways about data-location rules (kick-off minimum) |
 | SB-E00-003 | 5 | SLIP FIRST | CI: lint, types, pytest on PostGIS container, import-linter, OpenAPI drift check, TS client generation |
-Calibration note: Commit line = the four MUST stories above (18 pts; SB-E00-001 is done). STRETCH numbers give the order to pull them in. Measured pace after SB-E00-001: about 21 h for 3 pts, about 7 h per point, capacity 14 to 17 pts (verify). Checkpoint 2026-11-20: if SB-E00-013 takes more than about 21 h, cut scope from SB-E00-004.Go/no-go: if PostgreSQL 18 or PostGIS packages are unavailable on EC2, or WAL archiving misses REL-04, fall back to another host or a managed AWS database (verify); the PO decides.
+Calibration note: Commit line = the four MUST stories above (18 pts; SB-E00-001 is done). STRETCH numbers give the order to pull them in. Measured pace after SB-E00-001: about 21 h for 3 pts, about 7 h per point, capacity 14 to 17 pts (verify). Checkpoint 2026-11-20: if SB-E00-013 takes more than about 21 h, cut scope from SB-E00-004. Go/no-go: if PostgreSQL 18 or PostGIS packages are unavailable on EC2, or WAL archiving misses REL-04, fall back to another host or a managed AWS database (verify); the PO decides.
 
 ### Sprint 1 (2 weeks, starts 2026-12-07 — commit line to be sized at Sprint 1 Planning using measured solo velocity)
 | ID | Pts | Story |
