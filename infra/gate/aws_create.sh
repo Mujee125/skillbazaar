@@ -26,4 +26,19 @@ echo "existing sb-gate instances: 0"
 
 echo "plan: 1 x $INSTANCE_TYPE, image $AMI_ID, region $AWS_DEFAULT_REGION, SSH from my ip /32 only"
 if [[ "$APPLY" != "yes" ]]; then echo "DRY RUN: nothing created. Use --apply to create."; exit 0; fi
-echo "ERROR: --apply is not implemented yet (part 2)"; exit 1
+
+KEY_NAME="${PREFIX}key"
+SG_NAME="${PREFIX}sg"
+KEY_FILE="$HOME/.ssh/${KEY_NAME}.pem"
+mkdir -p "$HOME/.ssh"
+if [[ -e "$KEY_FILE" ]]; then echo "ERROR: key file already exists: $KEY_FILE"; exit 1; fi
+
+aws ec2 create-key-pair --key-name "$KEY_NAME" --query KeyMaterial --output text | tr -d '\r' > "$KEY_FILE"
+chmod 600 "$KEY_FILE"
+echo "key pair created: $KEY_NAME (private key saved outside the repo)"
+
+SG_ID=$(aws ec2 create-security-group --group-name "$SG_NAME" --description "sb-gate ssh from my ip only" --query GroupId --output text | tr -d '\r')
+aws ec2 authorize-security-group-ingress --group-id "$SG_ID" --protocol tcp --port 22 --cidr "${MY_IP}/32" > /dev/null
+echo "security group created: $SG_ID (SSH from my ip /32 only)"
+echo "STOP: part 2b (launch) is not implemented yet"
+exit 0
