@@ -40,5 +40,13 @@ echo "key pair created: $KEY_NAME (private key saved outside the repo)"
 SG_ID=$(aws ec2 create-security-group --group-name "$SG_NAME" --description "sb-gate ssh from my ip only" --query GroupId --output text | tr -d '\r')
 aws ec2 authorize-security-group-ingress --group-id "$SG_ID" --protocol tcp --port 22 --cidr "${MY_IP}/32" > /dev/null
 echo "security group created: $SG_ID (SSH from my ip /32 only)"
-echo "STOP: part 2b (launch) is not implemented yet"
-exit 0
+
+INSTANCE_ID=$(aws ec2 run-instances --image-id "$AMI_ID" --instance-type "$INSTANCE_TYPE" \
+  --key-name "$KEY_NAME" --security-group-ids "$SG_ID" --count 1 \
+  --metadata-options HttpTokens=required \
+  --tag-specifications "ResourceType=instance,Tags=[{Key=Name,Value=${PREFIX}db}]" "ResourceType=volume,Tags=[{Key=Name,Value=${PREFIX}db}]" \
+  --query "Instances[0].InstanceId" --output text | tr -d '\r')
+echo "launched: $INSTANCE_ID at $(date -u +%H:%M:%SZ)"
+aws ec2 wait instance-running --instance-ids "$INSTANCE_ID"
+aws ec2 describe-instances --instance-ids "$INSTANCE_ID" --query "Reservations[0].Instances[0].[InstanceType,Architecture,State.Name]" --output text
+echo "REMEMBER: run infra/gate/aws_teardown.sh --apply today"
