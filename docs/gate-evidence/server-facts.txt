@@ -1,0 +1,11 @@
+Mon Nov 23 19:15:53 UTC 2026
+PRETTY_NAME="Ubuntu 26.04.1 LTS"
+x86_64
+2
+psql (PostgreSQL) 18.6 (Ubuntu 18.6-0ubuntu0.26.04.1)
+PostgreSQL 18.6 (Ubuntu 18.6-0ubuntu0.26.04.1) on x86_64-pc-linux-gnu, compiled by gcc (Ubuntu 15.2.0-16ubuntu1) 15.2.0, 64-bit
+POSTGIS="3.6.2 08d9b9f" [EXTENSION] PGSQL="180" GEOS="3.14.1-CAPI-1.20.5" PROJ="9.7.1 NETWORK_ENABLED=OFF URL_ENDPOINT=https://cdn.proj.org USER_WRITABLE_DIRECTORY=/tmp/proj DATABASE_PATH=/usr/share/proj/proj.db" (compiled against PROJ 9.7.1) LIBXML="2.15.1" LIBJSON="0.18" LIBPROTOBUF="1.5.1" WAGYU="0.5.0 (Internal)"
+on
+1min
+100
+21|0|000000010000000000000015
