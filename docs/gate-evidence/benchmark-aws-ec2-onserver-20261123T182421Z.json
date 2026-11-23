@@ -1,0 +1,121 @@
+{
+  "timestamp_utc": "2026-11-23T18:24:21+00:00",
+  "label": "aws-ec2-onserver",
+  "target": {
+    "provider": "aws-ec2",
+    "region": "ap-southeast-2",
+    "endpoint_type": "direct",
+    "port": null,
+    "dbname": "sb_gate"
+  },
+  "psycopg_version": "3.3.2",
+  "row_count": 50000,
+  "parameters": {
+    "clients": 100,
+    "queries_per_client": 20,
+    "radii_km": [
+      2,
+      5,
+      10
+    ],
+    "limit": 20,
+    "seed": 42,
+    "query": "SELECT id FROM gate_provider_locations WHERE online AND category_id = %(cat)s AND ST_DWithin(location, ST_SetSRID(ST_MakePoint(%(lon)s, %(lat)s), 4326)::geography, %(radius)s) ORDER BY location <-> ST_SetSRID(ST_MakePoint(%(lon)s, %(lat)s), 4326)::geography LIMIT %(limit)s"
+  },
+  "connect_failures": [
+    "OperationalError: connection failed: connection to server at \"127.0.0.1\", port 5432 failed: FATAL:  remaining connection slots are reserved for roles with the SUPERUSER attribute",
+    "OperationalError: connection failed: connection to server at \"127.0.0.1\", port 5432 failed: FATAL:  remaining connection slots are reserved for roles with the SUPERUSER attribute",
+    "OperationalError: connection failed: connection to server at \"127.0.0.1\", port 5432 failed: FATAL:  remaining connection slots are reserved for roles with the SUPERUSER attribute",
+    "OperationalError: connection failed: connection to server at \"127.0.0.1\", port 5432 failed: FATAL:  remaining connection slots are reserved for roles with the SUPERUSER attribute"
+  ],
+  "warmup": {
+    "enabled": true,
+    "radius_km": 10,
+    "ok": 96,
+    "errors": [],
+    "p50_ms": 3197.7458930005014,
+    "p95_ms": 3250.276417999885,
+    "p99_ms": 3262.2179210002287,
+    "max_ms": 3262.2179210002287
+  },
+  "explain_unloaded": {
+    "2": {
+      "execution_ms": 11.436,
+      "planning_ms": 9.179,
+      "nodes": [
+        "Limit",
+        "Sort",
+        "Bitmap Heap Scan",
+        "Bitmap Index Scan"
+      ]
+    },
+    "5": {
+      "execution_ms": 0.721,
+      "planning_ms": 2.254,
+      "nodes": [
+        "Limit",
+        "Sort",
+        "Bitmap Heap Scan",
+        "Bitmap Index Scan"
+      ]
+    },
+    "10": {
+      "execution_ms": 2.625,
+      "planning_ms": 1.55,
+      "nodes": [
+        "Limit",
+        "Sort",
+        "Bitmap Heap Scan",
+        "Bitmap Index Scan"
+      ]
+    }
+  },
+  "results": [
+    {
+      "radius_km": 2,
+      "queries_ok": 1920,
+      "query_errors": 0,
+      "error_types": {},
+      "error_rate": 0.0,
+      "qps": 765.3428789194389,
+      "p50_ms": 95.73232200000348,
+      "p95_ms": 293.94994500034954,
+      "p99_ms": 376.1184430004505,
+      "max_ms": 866.0415579997789,
+      "wall_s": 2.508679511999617
+    },
+    {
+      "radius_km": 5,
+      "queries_ok": 1920,
+      "query_errors": 0,
+      "error_types": {},
+      "error_rate": 0.0,
+      "qps": 534.0524405817532,
+      "p50_ms": 170.1338390003002,
+      "p95_ms": 302.2795260003477,
+      "p99_ms": 336.9329920005839,
+      "max_ms": 433.85883399969316,
+      "wall_s": 3.595152562000294
+    },
+    {
+      "radius_km": 10,
+      "queries_ok": 1920,
+      "query_errors": 0,
+      "error_types": {},
+      "error_rate": 0.0,
+      "qps": 254.9958323620865,
+      "p50_ms": 371.73611899925163,
+      "p95_ms": 529.1807529993093,
+      "p99_ms": 576.3222499999756,
+      "max_ms": 606.6222609997567,
+      "wall_s": 7.529534824999246
+    }
+  ],
+  "verdict": {
+    "passed": false,
+    "target_p95_ms": 500,
+    "reference_p95_ms": 2000,
+    "reference_passed": true
+  },
+  "note": "Local runs validate the script only. They are not the gate verdict."
+}

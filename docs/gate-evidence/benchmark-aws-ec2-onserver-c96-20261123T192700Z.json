@@ -1,0 +1,116 @@
+{
+  "timestamp_utc": "2026-11-23T19:27:00+00:00",
+  "label": "aws-ec2-onserver-c96",
+  "target": {
+    "provider": "aws-ec2",
+    "region": "ap-southeast-2",
+    "endpoint_type": "direct",
+    "port": null,
+    "dbname": "sb_gate"
+  },
+  "psycopg_version": "3.3.2",
+  "row_count": 50000,
+  "parameters": {
+    "clients": 96,
+    "queries_per_client": 20,
+    "radii_km": [
+      2,
+      5,
+      10
+    ],
+    "limit": 20,
+    "seed": 42,
+    "query": "SELECT id FROM gate_provider_locations WHERE online AND category_id = %(cat)s AND ST_DWithin(location, ST_SetSRID(ST_MakePoint(%(lon)s, %(lat)s), 4326)::geography, %(radius)s) ORDER BY location <-> ST_SetSRID(ST_MakePoint(%(lon)s, %(lat)s), 4326)::geography LIMIT %(limit)s"
+  },
+  "connect_failures": [],
+  "warmup": {
+    "enabled": true,
+    "radius_km": 10,
+    "ok": 96,
+    "errors": [],
+    "p50_ms": 2836.2088430003496,
+    "p95_ms": 2894.533494998541,
+    "p99_ms": 2904.282007999427,
+    "max_ms": 2904.282007999427
+  },
+  "explain_unloaded": {
+    "2": {
+      "execution_ms": 9.769,
+      "planning_ms": 9.117,
+      "nodes": [
+        "Limit",
+        "Sort",
+        "Bitmap Heap Scan",
+        "Bitmap Index Scan"
+      ]
+    },
+    "5": {
+      "execution_ms": 0.721,
+      "planning_ms": 1.778,
+      "nodes": [
+        "Limit",
+        "Sort",
+        "Bitmap Heap Scan",
+        "Bitmap Index Scan"
+      ]
+    },
+    "10": {
+      "execution_ms": 2.658,
+      "planning_ms": 1.464,
+      "nodes": [
+        "Limit",
+        "Sort",
+        "Bitmap Heap Scan",
+        "Bitmap Index Scan"
+      ]
+    }
+  },
+  "results": [
+    {
+      "radius_km": 2,
+      "queries_ok": 1920,
+      "query_errors": 0,
+      "error_types": {},
+      "error_rate": 0.0,
+      "qps": 838.9889934600072,
+      "p50_ms": 98.42510499947821,
+      "p95_ms": 240.51974800022435,
+      "p99_ms": 279.9440409999079,
+      "max_ms": 329.0183799999795,
+      "wall_s": 2.288468639000712
+    },
+    {
+      "radius_km": 5,
+      "queries_ok": 1920,
+      "query_errors": 0,
+      "error_types": {},
+      "error_rate": 0.0,
+      "qps": 536.6200599492624,
+      "p50_ms": 163.51051300080144,
+      "p95_ms": 308.7143390002893,
+      "p99_ms": 345.0441259992658,
+      "max_ms": 439.5119109994994,
+      "wall_s": 3.5779504780002753
+    },
+    {
+      "radius_km": 10,
+      "queries_ok": 1920,
+      "query_errors": 0,
+      "error_types": {},
+      "error_rate": 0.0,
+      "qps": 255.31086701834414,
+      "p50_ms": 371.3532359997771,
+      "p95_ms": 528.079424999305,
+      "p99_ms": 571.8986470001255,
+      "max_ms": 619.7964669991052,
+      "wall_s": 7.520243937999112
+    }
+  ],
+  "verdict": {
+    "passed": false,
+    "target_p95_ms": 500,
+    "reference_p95_ms": 2000,
+    "reference_passed": true
+  },
+  "note": "Local runs validate the script only. They are not the gate verdict."
+}
