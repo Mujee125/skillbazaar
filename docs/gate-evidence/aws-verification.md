@@ -48,3 +48,21 @@ Target: p95 <= 500 ms at every radius, zero errors, 100 clients. Runs were on th
 - Pooled (pgbouncer) run not done. Full benchmark from my PC not done (slow home line).
 - Real cost: check Billing. Public IPv4 cost and plan-end behaviour: unverified.
 - Default 8 GiB root disk was unencrypted (SEC-DATA-01 gap for the pilot).
+
+## 7. Platform facts (T1, T2, T3, retention)
+### T1 Plan, credit, budget (console, checked 2026-11-21)
+- Free plan with 100 USD credit, ends 21 May 2027. Verified in the console.
+- Budget sb-gate-monthly-gross: 5 USD per month, Excludes Credit, alerts at 40% and 100% of actual spend. It is a notification, not a hard cap.
+- t3.small was marked Free tier eligible in the launch wizard.
+- Unverified: larger instance sizes, public IPv4 cost, and what happens to servers and data when the plan ends (PO question open).
+### T2 Region
+- Working region is Sydney (ap-southeast-2), for the gate only. It is not a pilot decision.
+- No region selector was seen in the console on 2026-11-21 after 2 attempts. Whether this account can use Mumbai (ap-south-1) is unverified.
+### T3 Round-trip time to AWS regional endpoints
+- Method: curl time_connect to https://ec2.REGION.amazonaws.com, 30 tries per region, 2026-11-24. Network: broadband, Mianwali.
+- Mumbai (ap-south-1): 30 of 30 ok. min 82, median 86, p95 91, max 161 ms.
+- Sydney (ap-southeast-2): 27 of 30 ok, 3 timed out. min 484, median 504, p95 1508, max 1510 ms. Only 27 samples, so p95 is rough.
+- An earlier Sydney run counted failed tries as 0 ms and is discarded.
+- Limits: this is connect time to a public AWS address from one home line. It is not database speed and not a server in that region. Mumbai was not tested with a server. No pass threshold was set. SRS 3.5 asks for low-latency access to Pakistan. The pilot region is the PO decision.
+### T4 WAL archive retention
+- No pruning step was run. Archived segments stayed in /var/lib/postgresql/wal_archive on the 8 GiB root disk for the 3 h 14 min the server lived. A retention policy is still to be designed for the pilot.
