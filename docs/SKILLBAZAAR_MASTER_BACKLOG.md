@@ -148,7 +148,7 @@ Roadmap: R0 walking skeleton | R1 closed pilot (one city, 3–4 categories, manu
 | SB-E00-001 | 3 | DONE | Monorepo scaffold: containerized Django backend + pnpm workspace (apps/web, apps/provider, packages/api-client, validation, tokens) |
 | SB-E00-013 | 3 | MUST | Gate-in-a-box: scripted GCP create/teardown, benchmark and restore-drill scripts tested locally first so cloud window is 3–5 days |
 | SB-E00-002 | 5 | MUST | AWS verification: PostgreSQL 18 + PostGIS on one EC2 instance, WAL archiving with archive_timeout (PITR is built by us), region situation (Sydney working region, Mumbai unverified), Redis option/price, latency from own connection, confirm free plan allows services |
-| SB-E00-004 | 8 | MUST | Data-tier gate: PostGIS dwithin benchmark (50k synthetic providers, 100 concurrent, p95 target 500 ms; SRS v3.0 PERF-03 is 2 s), PITR restore drill (TEST-07), Redis-loss recovery via outbox sweeper, resumable 3 MB upload at 2G speed |
+| SB-E00-004 | 8 | MUST | Data-tier gate: PostGIS dwithin benchmark (50k synthetic providers, 100 concurrent, p95 target 500 ms; SRS v3.0 PERF-03 is 2 s), PITR restore drill (TEST-07), Redis-loss recovery via outbox sweeper, resumable 3 MB upload at 2G speed (PROPOSED re-point 2026-11-24: benchmark and PITR already measured in the SB-E00-002 evidence; remaining here: pooled run for the connection-slot failure, restore on a new server. Redis-loss recovery moves to M2 with SB-E00-103; resumable upload moves to the story that needs it. Points to be re-sized.) |
 | SB-E00-012 | 2 | MUST | AWS cost guardrails: budget alert (created 2026-11-21), teardown verification (0 instances, 0 volumes, no leftover public address), gate evidence exported to repo, pilot-host cost comparison as input to D12 |
 | SB-E00-007a | 3 | STRETCH 3 | Core ADRs: hosting/DR, job-state name, money representation (split from 007) |
 | SB-E00-009 | 2 | STRETCH 2 | Client PO ratifies v3.2 amendments and answers OD-29/30/31 |
@@ -158,20 +158,22 @@ Roadmap: R0 walking skeleton | R1 closed pilot (one city, 3–4 categories, manu
 Calibration note: Commit line = the four MUST stories above (18 pts; SB-E00-001 is done). STRETCH numbers give the order to pull them in. Measured pace after SB-E00-001: about 21 h for 3 pts, about 7 h per point, capacity 14 to 17 pts (verify). Checkpoint 2026-11-20: if SB-E00-013 takes more than about 21 h, cut scope from SB-E00-004. Go/no-go: if PostgreSQL 18 or PostGIS packages are unavailable on EC2, or WAL archiving misses REL-04, fall back to another host or a managed AWS database (verify); the PO decides.
 
 ### Sprint 1 (2 weeks, starts 2026-12-07 — commit line to be sized at Sprint 1 Planning using measured solo velocity)
+Re-plan 2026-11-24 (PO accepted in principle, reported by the engineer): Sprint 1 = M1 (I can log in). Commit candidates: SB-E01-105, 106, 107, SB-E17-109, 110 (34 pts, about 238 h at 7 h per point, so M1 likely spans Sprints 1 to 3; verify after the first measured story). Plumbing stories marked JIT are built just in time inside the first story that needs them.
+
 | ID | Pts | Story |
 |---|---|---|
-| SB-E00-005 | 5 | RN spike: mock-location, Play Integrity, background upload on low-end Android (moved from S0; do not slip past S1) |
-| SB-E00-006 | 2 | RN UI spike (NativeWind) and shared tokens (moved from S0) |
-| SB-E00-007b | 2 | Remaining ADRs: modular monolith, validation layering + trigger catalog, outbox, state machine (split from 007) |
-| SB-E00-008 | 3 | Data-flow inventory (processors, data categories, PII) for OD-07 / PR-07 (moved from S0) |
-| SB-E00-101 | 5 | Module skeletons + import-linter contracts |
-| SB-E00-102 | 5 | Config service |
-| SB-E00-103 | 8 | Transactional outbox |
-| SB-E00-104 | 5 | Append-only audit log |
+| SB-E00-005 | 5 | RN spike: mock-location, Play Integrity, background upload on low-end Android (moved from S0; do not slip past S1) (move before the location story in M2) |
+| SB-E00-006 | 2 | RN UI spike (NativeWind) and shared tokens (moved from S0) (fold into SB-E17-110) |
+| SB-E00-007b | 2 | Remaining ADRs: modular monolith, validation layering + trigger catalog, outbox, state machine (split from 007) (write each ADR when its story starts) |
+| SB-E00-008 | 3 | Data-flow inventory (processors, data categories, PII) for OD-07 / PR-07 (moved from S0) (move before real CNIC data, M4) |
+| SB-E00-101 | 5 | Module skeletons + import-linter contracts (JIT: build inside the first story that needs it, not a Sprint 1 commit) |
+| SB-E00-102 | 5 | Config service (JIT: build inside the first story that needs it, not a Sprint 1 commit) |
+| SB-E00-103 | 8 | Transactional outbox (JIT: needed first by M2; Redis-loss recovery from SB-E00-004 moves here) |
+| SB-E00-104 | 5 | Append-only audit log (JIT: build inside the first story that needs it, not a Sprint 1 commit) |
 | SB-E01-105 | 8 | Phone-OTP login (FR-AUTH-02) |
 | SB-E01-106 | 5 | JWT + rotating refresh (FR-AUTH-04) |
 | SB-E01-107 | 5 | RBAC, staff MFA, hardened Django Admin |
-| SB-E00-108 | 2 | Feature flags + kill switches |
+| SB-E00-108 | 2 | Feature flags + kill switches (JIT: build inside the first story that needs it, not a Sprint 1 commit) |
 | SB-E17-109 | 8 | Next.js customer shell, en/ur, RTL |
 | SB-E17-110 | 8 | RN Provider shell |
 Also front-load in R0: observability baseline; CD pipeline with one-command rollback (plus `SB-E00-003` CI if not completed in Sprint 0).
