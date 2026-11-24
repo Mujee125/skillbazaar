@@ -66,3 +66,8 @@ Target: p95 <= 500 ms at every radius, zero errors, 100 clients. Runs were on th
 - Limits: this is connect time to a public AWS address from one home line. It is not database speed and not a server in that region. Mumbai was not tested with a server. No pass threshold was set. SRS 3.5 asks for low-latency access to Pakistan. The pilot region is the PO decision.
 ### T4 WAL archive retention
 - No pruning step was run. Archived segments stayed in /var/lib/postgresql/wal_archive on the 8 GiB root disk for the 3 h 14 min the server lived. A retention policy is still to be designed for the pilot.
+
+## 8. Summary lines (T6)
+- (i) PostgreSQL + PostGIS working: yes. PostgreSQL 18.6 and PostGIS 3.6.2 ran on the gate server (see D1).
+- (ii) WAL archiving with archive_timeout: working, archive_timeout=60s (test value). Retention: not designed, no pruning was run (see section 7, T4).
+- (iii) PITR vs REL-04 (RPO 15 min or less): a restore to a chosen time worked on the same server (see D4). REL-04 is pending SB-E00-004 TEST-07 and is not confirmed here.
