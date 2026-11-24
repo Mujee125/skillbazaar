@@ -104,6 +104,17 @@ Triggers via django-pgtrigger with a trigger catalog. Zod schemas generated from
 - Branch naming: `SB-E00-001-t1-short-name`. PR body: `Part of #<issue>` for intermediate tasks; `Closes #<issue>` on the final task only.
 - `SB-E00-001` tasks: T1 repo skeleton | T2 Compose (PostGIS, Redis) | T3 backend container | T4 health endpoint + pytest | T5 pnpm workspace | T6 README cold-run.
 
+## 9a. MVP milestones (PROPOSED 2026-11-24; PO accepted the re-plan in principle, reported by the engineer)
+Each milestone ends in something the client can click. Scope stays the full SRS v3.0; only the order changes. Plumbing stories (SB-E00-101 to 104, 108) are built when the first story needs them, not up front.
+| M | Name | Client can see | Stories | Status |
+|---|---|---|---|---|
+| M0 | Trust report | Restore works; benchmark result stated honestly | SB-E00-002, 004 (re-pointed), 012 | In progress |
+| M1 | I can log in | OTP login (fake SMS), customer web shell, provider app on a real Android phone, admin login | SB-E01-105, 106, 107, SB-E17-109, 110 | Not started |
+| M2 | Book and accept | Customer creates a fixed-price job; nearest provider gets an offer and accepts; job reaches ARRIVED with PIN | Catalog, location, dispatch, job state machine, outbox (Sprint 2+, unsized) | Not started |
+| M3 | Finish and pay | AC-01 end to end: completion, cash settlement, ledger and commission, fake digital adapter, review, notifications | Ledger, payments, reviews, notifications (unsized) | Not started |
+| M4 | Real rails | Real SMS, JazzCash/Easypaisa, provider KYC review, SOS, pilot host, restore drill on it | Long-lead items (Section 11), E02, E10, E18 (unsized) | Not started |
+| M5 | Pilot | Closed pilot (R1) | | Not started |
+
 ## 9. Epics and releases
 | Epic | Name | Release |
 |---|---|---|
