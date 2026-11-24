@@ -1,6 +1,6 @@
 # Skillbazaar.pk — Master Backlog (Single Source of Truth)
-Version: 1.0 | Updated: 2026-11-21 | Status: DRAFT for PO ratification (platform change GCP to AWS pending) | Basis: SRS v3.0 (BASELINE, 2026-10-08)
-SRS v3.1 (PROPOSED, 2026-11-01) has NOT been read by the assistant. Items marked [v3.1?] are provisional.
+Version: 1.1 | Updated: 2026-11-24 | Status: DRAFT for PO ratification (platform change GCP to AWS pending) | Basis: SRS v3.0 (BASELINE, 2026-10-08)
+SRS v3.1 (PROPOSED, 2026-11-01) has been read. It is inconsistent with v3.0 (BR summaries, original state list, FR-JOB-08/09/10 wording; §8.2 DDL uses BIGINT keys and an undefined function). v3.0 stays the baseline. Items marked [v3.1?] stay provisional until v3.1 is reconciled.
 
 ## 0. How to use this file across chat sessions
 1. Paste this file at the start of every new session.
@@ -20,7 +20,7 @@ Flow: ARRIVED → DIAGNOSING → QUOTED → IN_PROGRESS → completion.
 | # | Decision | Status |
 |---|---|---|
 | D1 | Backend: Python, Django, DRF, GeoDjango; modular monolith | Locked |
-| D2 | DB: PostgreSQL 18 + PostGIS 3.7 locally (image `postgis/postgis:18-3.7`), gate host PostgreSQL 18 self-managed on AWS EC2 (PostGIS package version: verify); SRID 4326, GiST | Locked (SRS §1.7); versions decided after SB-E00-013 T3 |
+| D2 | DB: PostgreSQL 18 + PostGIS 3.7 locally (image `postgis/postgis:18-3.7`), gate host PostgreSQL 18 self-managed on AWS EC2 (PostGIS package version: verify); SRID 4326, GiST | Locked (SRS §1.7); versions decided after SB-E00-013 T3. Gate measured on PostgreSQL 18.6 / PostGIS 3.6.2 (Ubuntu 26.04, EC2, 2026-11-23); local is 18.7 / 3.7.0. Both recorded. |
 | D3 | Redis-class store for live GPS (Tier 1), PostGIS for Tier 2 | Locked (SRS §1.7) |
 | D4 | Customer: Next.js PWA/Web. Provider: React Native (Expo dev builds), Android-first | Locked |
 | D5 | Admin: Django Admin, guard-railed | Locked |
@@ -33,6 +33,7 @@ Flow: ARRIVED → DIAGNOSING → QUOTED → IN_PROGRESS → completion.
 | D12 | Pilot host: decide using real gate cost numbers and the PO's answer on plan-end behaviour (AWS vs alternatives such as a VPS; all prices verify). The 2026-12-31 deadline no longer applies; the PO sets the new one. Staging after the free plan = local + tunnel unless budget approved. Guardrail: Upstash Free is gate-only, never the pilot Redis answer. A pilot needs a backup copy outside the AWS account. | OPEN |
 | D13 | Hostinger shared plan cannot run the stack; landing page/email only | Locked |
 | D14 | Job verification state name: PENDING_VERIFICATION vs COMPLETION_VERIFYING | OPEN (recommend rename; collides with Provider status in SRS §7.3) |
+| D15 | Gate and pilot dispatch latency tolerance: p95 ≤ 550 ms (500 ms + 10%) at 2, 5 and 10 km. Covers latency only; connection errors are NOT covered. Results are always reported against the 500 ms target and the 550 ms tolerance. | Accepted by PO (reported by the engineer, 2026-11-24) |
 
 ## 3. Hard constraints from SRS v3.0
 - §1.7: PostGIS binding; modular monolith; single cross-platform Provider codebase; Customer = Web/PWA; location pings never written one-by-one synchronously to the durable store.
@@ -88,6 +89,7 @@ Triggers via django-pgtrigger with a trigger catalog. Zod schemas generated from
 
 ## 8. Scrum setup
 - **Team:** 1 full-stack engineer (solo; covers backend, web, mobile, QA/DevOps, and wears the Scrum Master hat) + client Product Owner (manages backlog priorities, business verifications, and scope trade-offs).
+- **Capacity:** 40 h/week on Skillbazaar (engineer, 2026-11-24). Planning uses 7 h/point until measured again.
 - **Cadence:** Sprint 0 = 3 weeks (2026-11-16 to 2026-12-04). Subsequent sprints = 2 weeks.
 - **Ceremonies (solo-adapted):** Sprint Planning + Review Demo with client PO; weekly written Done / Next / Blocked summary to the PO, with hours logged as a comment on each story issue; Sprint Retrospective note. No scope enters a running sprint without swapping out equal work.
 - **Hierarchy:** Theme → Epic → Story → Task. Story ID: `SB-E07-012`. Every story cites SRS IDs.
@@ -240,3 +242,4 @@ Epic = GitHub label `epic:E07` + Epic field. Story = Issue titled `SB-E07-012 �
 - 0.8 — Database versions decided: local PostgreSQL 18.7 / PostGIS 3.7.0 and Cloud SQL POSTGRES_18 (PR #13). Cloud SQL sets its own PostGIS version, so record `postgis_full_version()` in the gate evidence (verify). Local data volume is now `pgdata18`, mounted at `/var/lib/postgresql`. The old PG16 volume `skillbazaar_pgdata` is kept unused until a removal decision. SB-E00-013 T1 to T3 are done (PRs #10 to #12) and were re-tested on PG18. T4 to T6 remain.
 - 0.9 — Process change: the daily 5-minute written log is replaced by a weekly written Done / Next / Blocked summary to the PO; hours are logged as a comment on each story issue. SB-E00-013 done and closed (T1 to T7, PRs #10 to #18; T7 = benchmark warm-up, added after T6). Hours about 10.5 h of the ~21 h estimate (author's estimate).
 - 1.0 — Platform change GCP to AWS (PO decision, ratification pending). GCP billing failed (card rejected). AWS free plan checked in the console 2026-11-21: $100 credit, ends 21 May 2027; behaviour of servers and data at plan end not stated (PO question). Working region Sydney (ap-southeast-2) for the gate only; no region selector seen after 2 attempts, Mumbai unverified. t3.small marked Free tier eligible; larger sizes and public IPv4 cost unverified. Budget sb-gate-monthly-gross created ($5/month, Excludes Credit, alerts at 40% and 100% actual; a notification, not a cap). D11 changed from Locked to PROPOSED; D12 re-scoped (2026-12-31 deadline removed; Upstash Free gate-only). SB-E00-002 and SB-E00-012 re-scoped to AWS within the same points; issue #21 renamed. SB-E00-013 row left as delivered: its GCP scripts are superseded and AWS scripts are still to be written (owner to be agreed). Neon and Upstash were evaluated and not adopted; the Upstash test was never run. Open: Q9 (managed DB preferred) conflicts with the EC2 layout; PO to decide.
+- 1.1 — AWS gate run 2026-11-23 (evidence PR #29, docs/gate-evidence/aws-verification.md). Gate checks (named D1-D4 in the evidence file, not the backlog decisions D1-D4): D1 GO: PostgreSQL 18.6 + PostGIS 3.6.2 on EC2 t3.small Ubuntu 26.04 (local is 18.7 / 3.7.0). D2 PASS: WAL archiving, archive_timeout proven on a quiet database. D4 PITR PASS (same server, tiny DB; restore on a new server and at pilot size untested). D3 measured FAIL at the 500 ms target: 10 km p95 529.2 ms, and 4 of 100 connections refused (connection slots). PO decision 2026-11-24 (reported by engineer; see D15): latency tolerance 10%, p95 <= 550 ms, latency only, applies to the gate and the pilot; the pilot host must be re-measured. Connection-slot failure not covered, still open. PO confirmed SRS scope: cash plus at least one digital payment method in the MVP; provider app is hybrid mobile as in the SRS. Engineer capacity 40 h/week. SRS v3.1 read; inconsistent with v3.0; v3.0 stays the baseline. SB-E00-002: gate evidence merged (PR #29); T5 Redis comparison not done; issue #21 open.
