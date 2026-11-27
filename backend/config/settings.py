@@ -78,6 +78,8 @@ DATABASES = {
 # Redis (D3). Only the URL for now; cache and Celery come in later stories.
 REDIS_URL = env("REDIS_URL")
 
+AUTH_USER_MODEL = "accounts.User"
+
 AUTH_PASSWORD_VALIDATORS = [
     {"NAME": "django.contrib.auth.password_validation.UserAttributeSimilarityValidator"},
     {"NAME": "django.contrib.auth.password_validation.MinimumLengthValidator"},
